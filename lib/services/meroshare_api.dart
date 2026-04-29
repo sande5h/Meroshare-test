@@ -199,6 +199,15 @@ class MeroShareApi {
                     b.accountBranch) as String? ??
                 '',
             crn: (mm['crn'] ?? b.crn) as String? ?? '',
+            customerId: (mm['id'] ?? mm['customerId']) is int
+                ? (mm['id'] ?? mm['customerId']) as int
+                : int.tryParse('${mm['id'] ?? mm['customerId'] ?? ''}'),
+            accountBranchId: (mm['accountBranchId']) is int
+                ? mm['accountBranchId'] as int
+                : int.tryParse('${mm['accountBranchId'] ?? ''}'),
+            accountTypeId: (mm['accountTypeId']) is int
+                ? mm['accountTypeId'] as int
+                : int.tryParse('${mm['accountTypeId'] ?? ''}'),
           );
         }
       } catch (_) {}
@@ -210,26 +219,31 @@ class MeroShareApi {
   // ── Apply for IPO ────────────────────────────────────────
   Future<Map<String, dynamic>> applyIpo({
     required int companyShareId,
-    required String crn,
+    required String crnNumber,
+    required String demat,
     required String boid,
     required int kitta,
     required String transactionPin,
     required int bankId,
     required String accountNumber,
+    int? customerId,
+    int? accountBranchId,
+    int? accountTypeId,
   }) async {
     final res = await _dio.post(
-      '$_base/applicantForm/',
+      '$_base/applicantForm/share/apply',
       data: {
-        'companyShareId': companyShareId,
-        'crn': crn,
+        'demat': demat,
         'boid': boid,
-        'appliedKitta': kitta,
-        'accountTypeId': 1,
-        'customerId': 1,
-        'demat': boid,
-        'transactionPIN': transactionPin,
-        'bankId': bankId,
         'accountNumber': accountNumber,
+        'customerId': customerId,
+        'accountBranchId': accountBranchId,
+        'accountTypeId': accountTypeId ?? 1,
+        'appliedKitta': '$kitta',
+        'crnNumber': crnNumber,
+        'transactionPIN': transactionPin,
+        'companyShareId': '$companyShareId',
+        'bankId': '$bankId',
       },
     );
     return res.data is Map ? Map<String, dynamic>.from(res.data) : {};

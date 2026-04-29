@@ -236,8 +236,10 @@ class _ApplySheet extends StatefulWidget {
 
 class _ApplySheetState extends State<_ApplySheet> {
   final _pinCtrl = TextEditingController();
+  final _crnCtrl = TextEditingController();
   int _kitta = 10;
   BankDetail? _selectedBank;
+  bool _useAccountAsCrn = false;
   bool _loading = false;
   String? _resultMsg;
   bool _success = false;
@@ -245,12 +247,21 @@ class _ApplySheetState extends State<_ApplySheet> {
   @override
   void dispose() {
     _pinCtrl.dispose();
+    _crnCtrl.dispose();
     super.dispose();
   }
+
+  String get _effectiveCrn => _useAccountAsCrn
+      ? (_selectedBank?.accountNumber ?? '')
+      : _crnCtrl.text.trim();
 
   Future<void> _apply() async {
     if (_selectedBank == null) {
       _show('Select a bank account');
+      return;
+    }
+    if (_effectiveCrn.isEmpty) {
+      _show('Enter the CRN number');
       return;
     }
     if (_pinCtrl.text.length != 4) {
@@ -263,12 +274,16 @@ class _ApplySheetState extends State<_ApplySheet> {
       final api = widget.ref.read(apiProvider);
       final res = await api.applyIpo(
         companyShareId: widget.issue.id,
-        crn: _selectedBank!.crn,
+        crnNumber: _effectiveCrn,
+        demat: detail?.demat ?? '',
         boid: detail?.boid ?? '',
         kitta: _kitta,
         transactionPin: _pinCtrl.text,
         bankId: _selectedBank!.id,
         accountNumber: _selectedBank!.accountNumber,
+        customerId: _selectedBank!.customerId,
+        accountBranchId: _selectedBank!.accountBranchId,
+        accountTypeId: _selectedBank!.accountTypeId,
       );
       setState(() {
         _success = true;
@@ -405,6 +420,61 @@ class _ApplySheetState extends State<_ApplySheet> {
                             )).toList(),
                             onChanged: (v) => setState(() => _selectedBank = v),
                           ),
+                  ),
+
+                  const SizedBox(height: 16),
+                  const Text('CRN NUMBER', style: TextStyle(fontSize: 10, color: C.muted, letterSpacing: 1.2)),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _crnCtrl,
+                    enabled: !_useAccountAsCrn,
+                    keyboardType: TextInputType.text,
+                    style: const TextStyle(color: C.text, fontSize: 14),
+                    decoration: InputDecoration(
+                      hintText: _useAccountAsCrn
+                          ? (_selectedBank?.accountNumber ?? 'Account number')
+                          : 'Enter CRN',
+                      filled: true,
+                      fillColor: C.surface2,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(color: C.border),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(color: C.border),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(color: C.accent),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  InkWell(
+                    onTap: () => setState(() => _useAccountAsCrn = !_useAccountAsCrn),
+                    borderRadius: BorderRadius.circular(8),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      child: Row(
+                        children: [
+                          SizedBox(
+                            height: 22, width: 22,
+                            child: Checkbox(
+                              value: _useAccountAsCrn,
+                              activeColor: C.accent,
+                              onChanged: (v) => setState(() => _useAccountAsCrn = v ?? false),
+                              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          const Expanded(
+                            child: Text('Use account number as CRN',
+                                style: TextStyle(fontSize: 12, color: C.muted)),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
 
                   const SizedBox(height: 16),

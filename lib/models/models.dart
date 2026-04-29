@@ -306,6 +306,9 @@ class BankDetail {
   final String accountNumber;
   final String accountBranch;
   final String crn;
+  final int? customerId;
+  final int? accountBranchId;
+  final int? accountTypeId;
 
   const BankDetail({
     required this.id,
@@ -313,6 +316,9 @@ class BankDetail {
     required this.accountNumber,
     required this.accountBranch,
     required this.crn,
+    this.customerId,
+    this.accountBranchId,
+    this.accountTypeId,
   });
 
   factory BankDetail.fromJson(Map<String, dynamic> j) => BankDetail(
@@ -329,6 +335,9 @@ class BankDetail {
     String? accountNumber,
     String? accountBranch,
     String? crn,
+    int? customerId,
+    int? accountBranchId,
+    int? accountTypeId,
   }) =>
       BankDetail(
         id: id,
@@ -336,5 +345,8 @@ class BankDetail {
         accountNumber: accountNumber ?? this.accountNumber,
         accountBranch: accountBranch ?? this.accountBranch,
         crn: crn ?? this.crn,
+        customerId: customerId ?? this.customerId,
+        accountBranchId: accountBranchId ?? this.accountBranchId,
+        accountTypeId: accountTypeId ?? this.accountTypeId,
       );
 }
